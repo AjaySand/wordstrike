@@ -1,10 +1,14 @@
 import './style.css'
 
+import setupGame from './game.js'
+
 document.querySelector('#app').innerHTML = `
-  <div>
-    <h1>Wordstrike</h1>
-    <p class="read-the-docs">
-      WIP
-    </p>
-  </div>
+    <div>
+        <canvas id="counter"></canvas>
+    </div>
 `
+
+const canvas = document.querySelector('#counter')
+if (canvas.getContext) {
+    setupGame(canvas)
+}
