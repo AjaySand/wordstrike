@@ -1,7 +1,7 @@
 export default {
     root: 'src',
     build: {
-        outDir: '../public',
+        outDir: '../docs',
     },
     server: {
         port: 3001,
