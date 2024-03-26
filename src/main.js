@@ -9,6 +9,6 @@ document.querySelector('#app').innerHTML = `
 `
 
 const canvas = document.querySelector('#counter')
-if (canvas.getContext) {
+if (canvas) {
     setupGame(canvas)
 }
