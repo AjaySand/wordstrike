@@ -17,8 +17,8 @@ const WORD_SET = new Set([
     'reset',
 ])
 
-const ENEMY_SPEED = 2;
-const SPAWN_RATE = 2000; // every 2 seconds
+const ENEMY_SPEED = 2
+const SPAWN_RATE = 2000 // every 2 seconds
 
 const ENTER_KEY = 13
 const BACKSPACE_KEY = 8
@@ -27,12 +27,15 @@ const SPACE_KEY = 32
 const A_KEY = 65
 const Z_KEY = 90
 const HIGHTLIGHT_COLOR = 'blue'
+const DEFAULT_COLOR = 'white'
+
+const DEBUG = false
 
 const OFFSET_FROM_TOP = 70
 
 function getRandomItem(set) {
-    const items = Array.from(set);
-    return items[Math.floor(Math.random() * items.length)];
+    const items = Array.from(set)
+    return items[Math.floor(Math.random() * items.length)]
 }
 
 class Game {
@@ -42,7 +45,7 @@ class Game {
 
         this.wordSet = WORD_SET
         this.wordsInPlay = []
-        this.score = 0 
+        this.score = 0
 
         this.lastTimeWordAdded = null
         this.delay = SPAWN_RATE
@@ -76,14 +79,20 @@ class Game {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
         this.wordsInPlay.forEach(word => word.draw(this.ctx, this.playerInput))
 
-        this.ctx.fillStyle = "white"; // default letter color
-        this.ctx.font = '48px "Roboto Mono", monospace';
+        this.ctx.fillStyle = DEFAULT_COLOR // default letter color
+        this.ctx.font = '48px "Roboto Mono", monospace'
 
 
-        this.ctx.fillStyle = "gray";
+        this.ctx.fillStyle = "gray"
         this.ctx.fillRect((this.canvas.width / 2) - 150, 0, 300, 50)
-        this.ctx.fillStyle = "white";
-        this.ctx.fillText(': ' + this.playerInput, (this.canvas.width / 2) - 150, 39, 300);
+        this.ctx.fillStyle = DEFAULT_COLOR
+        this.ctx.fillText(': ' + this.playerInput, (this.canvas.width / 2) - 150, 39, 300)
+        this.ctx.font = '24px "Roboto Mono", monospace'
+        this.ctx.fillText('Score: ' + this.score, 0, 25, 150)
+
+        if (DEBUG) {
+            //
+        }
     }
 
     update() {
@@ -106,14 +115,24 @@ class Game {
             // TODO: decrease player health
         }
 
-        if (this.score > 0) {
-            this.delay = SPAWN_RATE - (this.score * 100)
-        } else if (this.score > 5) {
-            this.delay = SPAWN_RATE - (this.score * 50)
-        } else if (this.score > 10) {
-            this.delay = SPAWN_RATE - (this.score * 25)
-        } else if (this.score > 15) {
-            this.delay = SPAWN_RATE - (this.score * 10)
+        if (this.score === 0) {
+            this.delay = SPAWN_RATE
+        } else if (this.score < 25) {
+            this.delay = SPAWN_RATE * 0.90
+        } else if (this.score < 50) {
+            this.delay = SPAWN_RATE * 0.85
+        } else if (this.score < 100) {
+            this.delay = SPAWN_RATE * 0.75
+        }
+
+        this.playerInput = this.playerInput.trim()
+        const found = this.wordsInPlay.find(word => word.word === this.playerInput)
+        if (found) {
+            this.score += 1
+            this.playerInput = ''
+
+            this.wordSet.add(found.word)
+            this.wordsInPlay = this.wordsInPlay.filter(word => word.word !== found.word)
         }
     }
 
@@ -122,32 +141,25 @@ class Game {
 
         const { keyCode, key } = event
 
-        if (!(keyCode === BACKSPACE_KEY || keyCode === ENTER_KEY || keyCode === ESCAPE_KEY || (keyCode >= A_KEY && keyCode <= Z_KEY))) {
+        if (!(keyCode === BACKSPACE_KEY
+            || keyCode === ESCAPE_KEY
+            || (keyCode >= A_KEY && keyCode <= Z_KEY))
+        ) {
             return
         }
 
-        if (keyCode === ENTER_KEY) {
-            if (_this.playerInput === '') return
-
-            const found = _this.wordsInPlay.find(word => word.word === _this.playerInput)
-            if (found) {
-                console.log({ found })
-                _this.score += 1
-                _this.playerInput = ''
-
-                _this.wordSet.add(found.word)
-                _this.wordsInPlay = _this.wordsInPlay.filter(word => word.word !== found.word)
-            }
-        }
 
         if (keyCode === BACKSPACE_KEY && event.ctrlKey) {
             _this.playerInput = ''
+            return
         } else if (keyCode === BACKSPACE_KEY) {
             _this.playerInput = _this.playerInput.slice(0, -1)
+            return
         }
 
         if (key.length === 1) {
             _this.playerInput += event.key
+            _this.playerInput = _this.playerInput.trim()
         }
     }
 
@@ -155,14 +167,15 @@ class Game {
         this.ctx = this.canvas.getContext('2d')
 
         this.reset()
-        
+
         this.loop()
     }
-    
+
     loop() {
         requestAnimationFrame(this.loop.bind(this))
 
         this.update()
+
 
         this.now = Date.now()
         this.elapsed = this.now - this.then
@@ -185,12 +198,14 @@ class Word {
     draw(ctx, userInput) {
         if (!(this.word && this.word.length)) return
 
+        ctx.font = '48px "Roboto Mono", monospace'
+
         let matching = true
         for (let i = 0; i < this.word.length; i++) {
             let letter = this.word.charAt(i)
 
             if (matching && userInput.charAt(i) === letter) {
-                ctx.fillStyle = "green"
+                ctx.fillStyle = HIGHTLIGHT_COLOR
             } else {
                 ctx.fillStyle = "white"
                 matching = false
@@ -200,12 +215,22 @@ class Word {
         }
     }
 
-    update() {
-        this.move()
+    update(gameScore) {
+        let speed = ENEMY_SPEED
+
+        if (gameScore < 5) {
+            speed = gameScore
+        } else if (gameScore < 25) {
+            speed = ENEMY_SPEED * 1.15
+        } else if (gameScore < 50) {
+            speed = ENEMY_SPEED * 1.25
+        }
+
+        this.move(speed)
     }
 
-    move() {
-        this.x += ENEMY_SPEED
+    move(speed = ENEMY_SPEED) {
+        this.x += speed
     }
 }
 
