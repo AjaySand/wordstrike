@@ -49,6 +49,7 @@ class Game {
 
         this.lastTimeWordAdded = null
         this.delay = SPAWN_RATE
+        this.enemySpeed = ENEMY_SPEED
 
         this.playerInput = ""
 
@@ -65,6 +66,7 @@ class Game {
         this.score = 0
         this.lastTimeWordAdded = null
         this.delay = SPAWN_RATE
+        this.enemySpeed = ENEMY_SPEED
 
         this.wordSet = WORD_SET
         this.playerInput = ''
@@ -91,7 +93,9 @@ class Game {
         this.ctx.fillText('Score: ' + this.score, 0, 25, 150)
 
         if (DEBUG) {
-            //
+            this.ctx.font = '14px "Roboto Mono", monospace'
+            this.ctx.fillText('delay: ' + this.delay, 0, 50, 150)
+            this.ctx.fillText('enemy delay: ' + this.enemySpeed, 0, 65, 150)
         }
     }
 
@@ -115,15 +119,8 @@ class Game {
             // TODO: decrease player health
         }
 
-        if (this.score === 0) {
-            this.delay = SPAWN_RATE
-        } else if (this.score < 25) {
-            this.delay = SPAWN_RATE * 0.90
-        } else if (this.score < 50) {
-            this.delay = SPAWN_RATE * 0.85
-        } else if (this.score < 100) {
-            this.delay = SPAWN_RATE * 0.75
-        }
+        this.delay = this._calculateDelay(this.score)
+        this.enemySpeed = this._calculateEnemySpeed(this.score)
 
         this.playerInput = this.playerInput.trim()
         const found = this.wordsInPlay.find(word => word.word === this.playerInput)
@@ -133,6 +130,32 @@ class Game {
 
             this.wordSet.add(found.word)
             this.wordsInPlay = this.wordsInPlay.filter(word => word.word !== found.word)
+        }
+    }
+
+    _calculateDelay(score) {
+        if (score === 0) {
+            return SPAWN_RATE
+        } else if (score < 25) {
+            return SPAWN_RATE * 0.90
+        } else if (score < 50) {
+            return SPAWN_RATE * 0.85
+        } else if (score < 100) {
+            return SPAWN_RATE * 0.65
+        } else {
+            return SPAWN_RATE * 0.50
+        }
+    }
+
+    _calculateEnemySpeed(score) {
+        if (score < 5) {
+            return ENEMY_SPEED
+        } else if (score < 25) {
+            return ENEMY_SPEED * 1.15
+        } else if (score < 50) {
+            return ENEMY_SPEED * 1.25
+        } else {
+            return ENEMY_SPEED * 1.35
         }
     }
 
@@ -215,17 +238,7 @@ class Word {
         }
     }
 
-    update(gameScore) {
-        let speed = ENEMY_SPEED
-
-        if (gameScore < 5) {
-            speed = gameScore
-        } else if (gameScore < 25) {
-            speed = ENEMY_SPEED * 1.15
-        } else if (gameScore < 50) {
-            speed = ENEMY_SPEED * 1.25
-        }
-
+    update(speed = ENEMY_SPEED) {
         this.move(speed)
     }
 
