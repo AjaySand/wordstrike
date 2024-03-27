@@ -18,7 +18,7 @@ const WORD_SET = new Set([
 ])
 
 const ENEMY_SPEED = 2
-const SPAWN_RATE = 2000 // every 2 seconds
+const SPAWN_RATE = 1500 // every 2 seconds
 
 const ENTER_KEY = 13
 const BACKSPACE_KEY = 8
@@ -28,6 +28,9 @@ const A_KEY = 65
 const Z_KEY = 90
 const HIGHTLIGHT_COLOR = 'blue'
 const DEFAULT_COLOR = 'white'
+const BACKGROUND_COLOR = "gray"
+const HEALTHBAR_SEPARATOR_COLOR = "white"
+const HEALTHBAR_COLOR = "red"
 
 const DEBUG = false
 
@@ -44,6 +47,11 @@ class Game {
         this.ctx = null
 
         this.wordSet = WORD_SET
+
+        this.reset()
+    }
+
+    reset() {
         this.wordsInPlay = []
         this.score = 0
 
@@ -53,28 +61,16 @@ class Game {
 
         this.playerInput = ""
 
-        this.fps
-        this.fpsInterval
-        this.startTime
-        this.now
-        this.then
-        this.elapsed
-    }
-
-    reset() {
-        this.wordsInPlay = []
-        this.score = 0
-        this.lastTimeWordAdded = null
-        this.delay = SPAWN_RATE
-        this.enemySpeed = ENEMY_SPEED
-
-        this.wordSet = WORD_SET
-        this.playerInput = ''
-
         this.fps = 60
         this.fpsInterval = 1000 / this.fps
         this.then = Date.now()
         this.startTime = this.then
+        this.now
+        this.elapsed
+
+        // health
+        this.health = 20 // in words of life
+        this.maxHealth = 20
     }
 
     draw() {
@@ -85,18 +81,42 @@ class Game {
         this.ctx.font = '48px "Roboto Mono", monospace'
 
 
-        this.ctx.fillStyle = "gray"
+        this.ctx.fillStyle = BACKGROUND_COLOR 
         this.ctx.fillRect((this.canvas.width / 2) - 150, 0, 300, 50)
         this.ctx.fillStyle = DEFAULT_COLOR
         this.ctx.fillText(': ' + this.playerInput, (this.canvas.width / 2) - 150, 39, 300)
         this.ctx.font = '24px "Roboto Mono", monospace'
         this.ctx.fillText('Score: ' + this.score, 0, 25, 150)
 
+        this.drawHealthBar()
+
         if (DEBUG) {
             this.ctx.font = '14px "Roboto Mono", monospace'
+            this.ctx.fillStyle = DEFAULT_COLOR
             this.ctx.fillText('delay: ' + this.delay, 0, 50, 150)
             this.ctx.fillText('enemy delay: ' + this.enemySpeed, 0, 65, 150)
+            this.ctx.fillText('health: ' + this.health, 0, 85, 150)
         }
+    }
+
+    drawHealthBar() {
+        const WIDTH = 200
+        const HEIGHT = 30
+        const PADDING = 10
+        const startX = this.canvas.width - (WIDTH + PADDING);
+
+
+        this.ctx.fillStyle = BACKGROUND_COLOR
+        this.ctx.fillRect(startX, PADDING, WIDTH, HEIGHT)
+
+        this.drawRectBorder(startX, PADDING,  WIDTH, HEIGHT)
+        this.ctx.fillStyle = HEALTHBAR_COLOR
+        this.ctx.fillRect(startX, PADDING, (WIDTH * this.health) / this.maxHealth, HEIGHT)
+    }
+
+    drawRectBorder(x, y, width, hight, thickness = 1, color = HEALTHBAR_SEPARATOR_COLOR) {
+        this.ctx.fillStyle = color
+        this.ctx.fillRect(x - (thickness), y - (thickness), width + (thickness * 2), hight + (thickness * 2))
     }
 
     update() {
@@ -116,7 +136,7 @@ class Game {
             this.wordsInPlay = this.wordsInPlay.filter(word => !wordsToRemove.includes(word))
             this.wordSet.add(wordsToRemove[0].word)
 
-            // TODO: decrease player health
+            this.health--
         }
 
         this.delay = this._calculateDelay(this.score)
@@ -130,6 +150,14 @@ class Game {
 
             this.wordSet.add(found.word)
             this.wordsInPlay = this.wordsInPlay.filter(word => word.word !== found.word)
+        }
+
+        // todo:
+        // - pause menu
+        // - reset match
+
+        if (this.health <= 0) {
+            this.reset()
         }
     }
 
