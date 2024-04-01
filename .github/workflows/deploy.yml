@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
 
-    step:
+    steps:
       - name: Download artifact
         uses: actions/download-artifact@v3
         with:
@@ -63,6 +63,6 @@ jobs:
 
       - name: Deploy to Github pages
         uses: peaceiris/actions-gh-pages@v3
-          with:
-            github_token: ${{ secrets.GITHUB_TOKEN }}
-            publish_dir: ./docs
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
