@@ -45,12 +45,6 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Upload build files
-        uses: actions/upload-artifact@v3
-        with:
-          name: build files
-          path: ./docs
-
       - name: Commit report
         run: |
             git config --global user.name 'Ajaydeep Sandhu'
