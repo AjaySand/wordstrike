@@ -9,6 +9,9 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    if: github.ref == 'refs/heads/master'
 
     steps:
       - name: Checkout repo
@@ -44,21 +47,6 @@ jobs:
 
       - name: Upload build files
         uses: actions/upload-artifact@v3
-        with:
-          name: build files
-          path: ./docs
-
-  deploy:
-    name: Deploy
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    if: github.ref == 'refs/heads/master'
-
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v3
         with:
           name: build files
           path: ./docs
