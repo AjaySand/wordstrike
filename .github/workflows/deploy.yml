@@ -49,5 +49,7 @@ jobs:
         run: |
             git config --global user.name 'Ajaydeep Sandhu'
             git config --global user.email '38798387+AjaySand@users.noreply.github.com'
+            git add "docs/index.html"
+            git add "docs/assets/*"
             git commit -am "Automated github pages"
             git push
